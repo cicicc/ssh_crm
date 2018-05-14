@@ -12,9 +12,18 @@
         http://www.springframework.org/schema/tx/spring-tx.xsd
         http://www.springframework.org/schema/aop
         http://www.springframework.org/schema/aop/spring-aop.xsd ">
+    <!--配置customerDao-->
+    <bean name="customerDao" class="com.afeng.dao.impl.CustomerDaoImpl" scope="prototype">
+        <!--dao记得引入连接池和会话工厂-->
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <!--配置customerService-->
+    <bean name="customerService" class="com.afeng.service.impl.CustomerServiceImpl" scope="prototype">
+        <property name="customerDao" ref="customerDao"/>
+    </bean>
 
     <bean name="customerAction" class="com.afeng.web.action.CustomerAction" scope="prototype">
-
+        <property name="customerService" ref="customerService"/>
     </bean>
     <!--spring整合hibernate-->
     <bean class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" name="sessionFactory">
@@ -51,6 +60,33 @@
         <property name="password" value="${jdbc.password}"/>
 
     </bean>
+    <!--配置核心事务管理器-->
+    <bean class="org.springframework.orm.hibernate5.HibernateTransactionManager" name="transactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <!--&lt;!&ndash;配置事务通知&ndash;&gt;
+    <tx:advice transaction-manager="transactionManager" id="txAdvice">
+        <tx:attributes>
+            <tx:method name="save*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="update*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="modify*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="delete*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="remove*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="persist*" isolation="REPEATABLE_READ" read-only="false"/>
+            <tx:method name="get*" isolation="REPEATABLE_READ" read-only="true"/>
+            <tx:method name="find*" isolation="REPEATABLE_READ" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+    &lt;!&ndash;配置织入&ndash;&gt;
+    <aop:config >
+        &lt;!&ndash;"execution(* cn.itcast.service.impl.*ServiceImpl.*(..))"&ndash;&gt;
+        <aop:pointcut id="txPointCut" expression="execution(* com.afeng.service.impl.*ServiceImpl.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+    </aop:config>-->
+    <!--开启注解-->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+
 
 
 
