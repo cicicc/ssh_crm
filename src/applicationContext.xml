@@ -1,96 +1,96 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<beans xmlns="http://www.springframework.org/schema/beans"
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context.xsd
-        http://www.springframework.org/schema/tx
-        http://www.springframework.org/schema/tx/spring-tx.xsd
-        http://www.springframework.org/schema/aop
-        http://www.springframework.org/schema/aop/spring-aop.xsd ">
-    <!--配置customerDao-->
-    <bean name="customerDao" class="com.afeng.dao.impl.CustomerDaoImpl" scope="prototype">
-        <!--dao记得引入连接池和会话工厂-->
-        <property name="sessionFactory" ref="sessionFactory"/>
-    </bean>
-    <!--配置customerService-->
-    <bean name="customerService" class="com.afeng.service.impl.CustomerServiceImpl" scope="prototype">
-        <property name="customerDao" ref="customerDao"/>
+       http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd ">
+
+    <!-- 读取db.properties文件 -->
+    <context:property-placeholder location="classpath:db.properties" />
+    <!-- 配置c3p0连接池 -->
+    <bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" >
+        <property name="jdbcUrl" value="${jdbc.jdbcUrl}" ></property>
+        <property name="driverClass" value="${jdbc.driverClass}" ></property>
+        <property name="user" value="${jdbc.user}" ></property>
+        <property name="password" value="${jdbc.password}" ></property>
     </bean>
 
-    <bean name="customerAction" class="com.afeng.web.action.CustomerAction" scope="prototype">
-        <property name="customerService" ref="customerService"/>
+    <!-- 核心事务管理器 -->
+    <bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager" >
+        <property name="sessionFactory" ref="sessionFactory" ></property>
     </bean>
-    <!--spring整合hibernate-->
-    <bean class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" name="sessionFactory">
-        <!--配置hibernate的配置文件-->
-        <property name="hibernateProperties">
-            <props>
-                <prop key="hibernate.connection.driver_class">com.mysql.jdbc.Driver</prop>
-                <prop key="hibernate.connection.url">jdbc:mysql:///crm</prop>
-                <prop key="hibernate.connection.username">root</prop>
-                <prop key="hibernate.connection.password">chenfeng980320</prop>
-                <prop key="hibernate.hbm2ddl.auto">update</prop>
-                <prop key="hibernate.current_session_context_class">thread</prop>
-                <prop key="format_sql">true</prop>
-                <prop key="hibernate.show_sql">true</prop>
-                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
-            </props>
-        </property>
-        <!--引入orm元数据 只要导入上层包 spring会自动导入下面的包-->
-        <property name="mappingDirectoryLocations" value="classpath:com/afeng/domain"/>
-        <!--注入c3p0连接池-->
-        <property name="dataSource" ref="dataSource"/>
-    </bean>
-    <!--引入c3p0连接池-->
-    <!--读取配置文件-->
-    <context:property-placeholder location="classpath:db.properties"/>
-    <!--jdbc.driver_class=com.mysql.jdbc.Driver
-        jdbc.jdbcUrl=jdbc:mysql:///crm
-        jdbc.username=root
-        jdbc.password=chenfeng980320-->
-    <bean class="com.mchange.v2.c3p0.ComboPooledDataSource" name="dataSource">
-        <property name="driverClass" value="${jdbc.driverClass}"/>
-        <property name="jdbcUrl" value="${jdbc.jdbcUrl}"/>
-        <property name="user" value="${jdbc.user}"/>
-        <property name="password" value="${jdbc.password}"/>
 
-    </bean>
-    <!--配置核心事务管理器-->
-    <bean class="org.springframework.orm.hibernate5.HibernateTransactionManager" name="transactionManager">
-        <property name="sessionFactory" ref="sessionFactory"/>
-    </bean>
-    <!--&lt;!&ndash;配置事务通知&ndash;&gt;
-    <tx:advice transaction-manager="transactionManager" id="txAdvice">
+    <!-- 配置通知 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager" >
         <tx:attributes>
-            <tx:method name="save*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="update*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="modify*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="delete*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="remove*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="persist*" isolation="REPEATABLE_READ" read-only="false"/>
-            <tx:method name="get*" isolation="REPEATABLE_READ" read-only="true"/>
-            <tx:method name="find*" isolation="REPEATABLE_READ" read-only="true"/>
+            <tx:method name="save*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="persist*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="modify*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="delete*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="remove*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+            <tx:method name="get*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="true" />
+            <tx:method name="find*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="true" />
+            <tx:method name="*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
         </tx:attributes>
     </tx:advice>
-    &lt;!&ndash;配置织入&ndash;&gt;
-    <aop:config >
-        &lt;!&ndash;"execution(* cn.itcast.service.impl.*ServiceImpl.*(..))"&ndash;&gt;
-        <aop:pointcut id="txPointCut" expression="execution(* com.afeng.service.impl.*ServiceImpl.*(..))"/>
-        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
-    </aop:config>-->
-    <!--开启注解-->
+    <!-- 配置将通知织入目标对象
+    配置切点
+    配置切面 -->
+    <aop:config>
+        <aop:pointcut expression="execution(* com.afeng.service.impl.*ServiceImpl.*(..))" id="txPc"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPc" />
+    </aop:config>
+    <!-- ========================================================================================= -->
+    <!-- 开启注解事务
     <tx:annotation-driven transaction-manager="transactionManager" />
+     -->
+    <!-- 将SessionFactory配置到spring容器中 -->
+    <!-- 加载配置方案1:仍然使用外部的hibernate.cfg.xml配置信息 -->
+    <!-- <bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" >
+            <property name="configLocation" value="classpath:hibernate.cfg.xml" ></property>
+    </bean> -->
+    <!-- 加载配置方案2:在spring配置中放置hibernate配置信息 -->
+    <bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" >
+        <!-- 将连接池注入到sessionFactory, hibernate会通过连接池获得连接 -->
+        <property name="dataSource" ref="dataSource" ></property>
+        <!-- 配置hibernate基本信息 -->
+        <property name="hibernateProperties">
+            <props>
+                <!--  必选配置 -->
+                <!--    <prop key="hibernate.connection.driver_class" >com.mysql.jdbc.Driver</prop>
+                        <prop key="hibernate.connection.url" >jdbc:mysql:///crm</prop>
+                        <prop key="hibernate.connection.username" >root</prop>
+                        <prop key="hibernate.connection.password" >chenfeng980320</prop> -->
+                <prop key="hibernate.dialect" >org.hibernate.dialect.MySQLDialect</prop>
 
+                <!--  可选配置 -->
+                <prop key="hibernate.show_sql" >true</prop>
+                <prop key="hibernate.format_sql" >true</prop>
+                <prop key="hibernate.hbm2ddl.auto" >update</prop>
+            </props>
+        </property>
+        <!-- 引入orm元数据,指定orm元数据所在的包路径,spring会自动读取包中的所有配置 -->
+        <property name="mappingDirectoryLocations" value="classpath:com/afeng/domain" ></property>
+    </bean>
 
+    <!-- action -->
+    <!-- 注意:Action对象作用范围一定是多例的.这样才符合struts2架构 -->
+    <bean name="customerAction" class="com.afeng.web.action.CustomerAction" scope="prototype" >
+        <property name="customerService" ref="customerService" ></property>
+    </bean>
 
-
-
-
-
-
+    <!-- service -->
+    <bean name="customerService" class="com.afeng.service.impl.CustomerServiceImpl" >
+        <property name="customerDao" ref="customerDao" ></property>
+    </bean>
+    <!-- dao -->
+    <bean name="customerDao" class="com.afeng.dao.impl.CustomerDaoImpl" >
+        <property name="sessionFactory" ref="sessionFactory" ></property>
+    </bean>
 </beans>

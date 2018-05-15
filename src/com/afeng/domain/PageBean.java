@@ -63,6 +63,12 @@ public class PageBean<T>  implements Serializable {
         this.data = data;
     }
 
+    /**
+     *
+     * @param pageNumber 当前页码数
+     * @param pageSize 每页显示的数据数目
+     * @param totalRecord 总记录数
+     */
     public PageBean(Integer pageNumber, Integer pageSize, Integer totalRecord) {
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;

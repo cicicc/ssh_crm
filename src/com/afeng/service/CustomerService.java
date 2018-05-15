@@ -1,9 +1,12 @@
 package com.afeng.service;
 
 import com.afeng.domain.Customer;
+import com.afeng.domain.PageBean;
+import org.hibernate.criterion.DetachedCriteria;
 
-import java.util.List;
 
 public interface CustomerService {
-    List<Customer> findAll();
+
+    PageBean<Customer> findByPage(int pageNumber);
+
 }
